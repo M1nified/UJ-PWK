@@ -136,10 +136,28 @@ class Generation {
         return this;
     }
     performCrossover() {
+        for (let i = 0; i < this.shapes.length / 2; i += 2) {
+            const fst = this.shapes[i], snd = this.shapes[i + 1], fstMid = Math.floor(fst.size / 2), sndMid = Math.floor(snd.size / 2), fstRemoved = fst.splice(fstMid), sndRemoved = snd.splice(sndMid);
+            fst.push(...sndRemoved);
+            snd.push(...fstRemoved);
+        }
         return this;
     }
     performMutation() {
+        this.shapes.forEach(shape => {
+            if (Math.random() < .1)
+                shape.addRandomRect();
+        });
         return this;
+    }
+    setRandomOrder() {
+        const tmpShapes = this.shapes.splice(0);
+        tmpShapes.forEach(shape => {
+            if (Math.random() > .5)
+                this.shapes.push(shape);
+            else
+                this.shapes.unshift(shape);
+        });
     }
 }
 let evaluate = (data) => {
@@ -194,7 +212,7 @@ class Point {
         return dist;
     }
     avg(p1) {
-        console.log(p1, this, (p1.x + this.x) / 2, (p1.y + this.y) / 2);
+        // console.log(p1, this, (p1.x + this.x) / 2, (p1.y + this.y) / 2)
         return new Point((p1.x + this.x) / 2, (p1.y + this.y) / 2);
     }
     findFurthest(points) {
@@ -297,6 +315,15 @@ class Shape {
     evaluate() {
         return evaluate(this.data);
     }
+    splice(...args) {
+        return this.data.splice(...args);
+    }
+    push(...args) {
+        return this.data.push(...args);
+    }
+    unshift(...args) {
+        return this.data.unshift(...args);
+    }
 }
 const transformations = {
     "ne": rect0 => new Rect(rect0.centerX, rect0.centerY - rect0.size, rect0.size),
@@ -339,6 +366,18 @@ document.querySelectorAll(".btn-generation-add").forEach(btn => btn.addEventList
 }));
 document.querySelectorAll(".btn-generation-selection").forEach(btn => btn.addEventListener("click", () => {
     generation.performSelection();
+    display.updateGenerationInfo();
+}));
+document.querySelectorAll(".btn-generation-crossover").forEach(btn => btn.addEventListener("click", () => {
+    generation.performCrossover();
+    display.updateGenerationInfo();
+}));
+document.querySelectorAll(".btn-generation-mutation").forEach(btn => btn.addEventListener("click", () => {
+    generation.performMutation();
+    display.updateGenerationInfo();
+}));
+document.querySelectorAll(".btn-generation-randomorder").forEach(btn => btn.addEventListener("click", () => {
+    generation.setRandomOrder();
     display.updateGenerationInfo();
 }));
 //# sourceMappingURL=index.js.map

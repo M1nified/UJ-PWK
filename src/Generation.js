@@ -29,10 +29,33 @@ class Generation {
     return this
   }
   performCrossover() {
+  	for(let i=0; i<this.shapes.length / 2; i+=2){
+  		const fst = this.shapes[i],
+	  		snd = this.shapes[i+1],
+	  		fstMid = Math.floor(fst.size / 2),
+	  		sndMid = Math.floor(snd.size / 2),
+		  	fstRemoved = fst.splice(fstMid),
+		  	sndRemoved = snd.splice(sndMid)
+		  fst.push(...sndRemoved)
+		  snd.push(...fstRemoved)
+  	}
     return this
   }
   performMutation() {
+  	this.shapes.forEach(shape => {
+  		if(Math.random() < .1)
+  			shape.addRandomRect()
+  	})
     return this
+  }
+  setRandomOrder() {
+  	const tmpShapes = this.shapes.splice(0)
+  	tmpShapes.forEach(shape => {
+  		if(Math.random() > .5)
+  			this.shapes.push(shape)
+  		else
+  			this.shapes.unshift(shape)
+  	})
   }
 }
 

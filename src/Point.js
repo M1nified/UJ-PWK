@@ -10,7 +10,7 @@ class Point {
     return dist
   }
   avg(p1) {
-    console.log(p1, this, (p1.x + this.x) / 2, (p1.y + this.y) / 2)
+    // console.log(p1, this, (p1.x + this.x) / 2, (p1.y + this.y) / 2)
     return new Point(
       (p1.x + this.x) / 2,
       (p1.y + this.y) / 2

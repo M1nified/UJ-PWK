@@ -45,3 +45,16 @@ document.querySelectorAll(".btn-generation-selection").forEach(btn => btn.addEve
   generation.performSelection()
   display.updateGenerationInfo()
 }))
+document.querySelectorAll(".btn-generation-crossover").forEach(btn => btn.addEventListener("click", () => {
+  generation.performCrossover()
+  display.updateGenerationInfo()
+}))
+document.querySelectorAll(".btn-generation-mutation").forEach(btn => btn.addEventListener("click", () => {
+  generation.performMutation()
+  display.updateGenerationInfo()
+}))
+document.querySelectorAll(".btn-generation-randomorder").forEach(btn => btn.addEventListener("click", () => {
+  generation.setRandomOrder()
+  display.updateGenerationInfo()
+}))
+

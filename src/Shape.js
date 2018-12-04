@@ -28,4 +28,13 @@ class Shape {
   evaluate() {
     return evaluate(this.data)
   }
+  splice(...args){
+  	return this.data.splice(...args)
+  }
+  push(...args){
+  	return this.data.push(...args)
+  }
+  unshift(...args){
+  	return this.data.unshift(...args)
+  }
 }
