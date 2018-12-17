@@ -24,7 +24,8 @@ generation.addRandomShapes(10)
 display.updateGenerationInfo()
 // data.push(new Rect(100, 100))
 
-
+const dynamicDisplay = new DynamicDisplay(generation)
+dynamicDisplay.refresh()
 
 display.refresh()
 
@@ -44,17 +45,21 @@ document.querySelectorAll(".btn-generation-add").forEach(btn => btn.addEventList
 document.querySelectorAll(".btn-generation-selection").forEach(btn => btn.addEventListener("click", () => {
   generation.performSelection()
   display.updateGenerationInfo()
+  dynamicDisplay.refresh()
 }))
 document.querySelectorAll(".btn-generation-crossover").forEach(btn => btn.addEventListener("click", () => {
   generation.performCrossover()
   display.updateGenerationInfo()
+  dynamicDisplay.refresh()
 }))
 document.querySelectorAll(".btn-generation-mutation").forEach(btn => btn.addEventListener("click", () => {
   generation.performMutation()
   display.updateGenerationInfo()
+  dynamicDisplay.refresh()
 }))
 document.querySelectorAll(".btn-generation-randomorder").forEach(btn => btn.addEventListener("click", () => {
   generation.setRandomOrder()
   display.updateGenerationInfo()
+  dynamicDisplay.refresh()
 }))
 

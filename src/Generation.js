@@ -23,8 +23,9 @@ class Generation {
     return this
   }
   performSelection() {
-    let marks = this.shapes.map(s => s.evaluate()),
-      minMark = marks.sort()[Math.floor(0.3 * marks.length)]
+    const marks = this.shapes.map(s => s.evaluate()),
+      minMark = marks.sort()[Math.floor(0.3 * marks.length)],
+      initialCount = this.shapes.length
     this.shapes = this.shapes.filter((s, i) => marks[i] >= minMark)
     return this
   }

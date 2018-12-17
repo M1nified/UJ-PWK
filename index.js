@@ -107,6 +107,60 @@ class Display {
         return this;
     }
 }
+class DynamicDisplay {
+    constructor(generation) {
+        this.setGeneration(generation);
+        this.display = d3.select(".display-dynamic");
+        this.scale = 1 / 4;
+    }
+    setData(data) {
+        this.data = data;
+        return this;
+    }
+    setGeneration(generation) {
+        this.generation = generation;
+        return this;
+    }
+    refresh() {
+        const fillShapeSvg = (shape, i, shapes) => {
+            const svg = d3
+                .select(shapes[i]);
+            const rect = svg
+                .selectAll("rect")
+                .data(shape.data);
+            rect
+                .enter()
+                .append("rect")
+                .attr("height", r => r.size * this.scale)
+                .attr("width", r => r.size * this.scale)
+                .attr("x", r => r.x * this.scale)
+                .attr("y", r => r.y * this.scale)
+                .attr("fill-opacity", ".95")
+                .attr("stroke", "black");
+            rect
+                .transition()
+                .attr("height", r => r.size * this.scale)
+                .attr("width", r => r.size * this.scale)
+                .attr("x", r => r.x * this.scale)
+                .attr("y", r => r.y * this.scale);
+            console.log('rect', shape.data);
+        };
+        const shape = this.display
+            .selectAll(".shape")
+            .data(this.generation.shapes);
+        shape
+            .exit()
+            .remove();
+        shape
+            .enter()
+            .append("svg")
+            .attr("class", "shape")
+            .each(fillShapeSvg);
+        shape
+            .transition()
+            .each(fillShapeSvg);
+    }
+}
 class Generation {
     constructor() {
         this.shapes = [];
@@ -131,7 +185,7 @@ class Generation {
         return this;
     }
     performSelection() {
-        let marks = this.shapes.map(s => s.evaluate()), minMark = marks.sort()[Math.floor(0.3 * marks.length)];
+        const marks = this.shapes.map(s => s.evaluate()), minMark = marks.sort()[Math.floor(0.3 * marks.length)], initialCount = this.shapes.length;
         this.shapes = this.shapes.filter((s, i) => marks[i] >= minMark);
         return this;
     }
@@ -350,6 +404,8 @@ display.setGeneration(generation);
 generation.addRandomShapes(10);
 display.updateGenerationInfo();
 // data.push(new Rect(100, 100))
+const dynamicDisplay = new DynamicDisplay(generation);
+dynamicDisplay.refresh();
 display.refresh();
 document.querySelectorAll(".btn-undo").forEach(btn => btn.addEventListener("click", () => data.length - 1 && data.pop() && display.refresh()));
 document.querySelectorAll(".btn-evaluate").forEach(btn => btn.addEventListener("click", () => {
@@ -367,17 +423,21 @@ document.querySelectorAll(".btn-generation-add").forEach(btn => btn.addEventList
 document.querySelectorAll(".btn-generation-selection").forEach(btn => btn.addEventListener("click", () => {
     generation.performSelection();
     display.updateGenerationInfo();
+    dynamicDisplay.refresh();
 }));
 document.querySelectorAll(".btn-generation-crossover").forEach(btn => btn.addEventListener("click", () => {
     generation.performCrossover();
     display.updateGenerationInfo();
+    dynamicDisplay.refresh();
 }));
 document.querySelectorAll(".btn-generation-mutation").forEach(btn => btn.addEventListener("click", () => {
     generation.performMutation();
     display.updateGenerationInfo();
+    dynamicDisplay.refresh();
 }));
 document.querySelectorAll(".btn-generation-randomorder").forEach(btn => btn.addEventListener("click", () => {
     generation.setRandomOrder();
     display.updateGenerationInfo();
+    dynamicDisplay.refresh();
 }));
 //# sourceMappingURL=index.js.map
