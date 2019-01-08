@@ -34,7 +34,7 @@ class DynamicDisplay {
 				.attr("width", r => r.size * this.scale)
 				.attr("x", r => r.x * this.scale)
 				.attr("y", r => r.y * this.scale)
-			console.log('rect', shape.data)
+			// console.log('rect', shape.data)
   	}
   	const shape = this.display
   		.selectAll(".shape")

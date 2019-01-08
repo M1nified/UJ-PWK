@@ -143,7 +143,7 @@ class DynamicDisplay {
                 .attr("width", r => r.size * this.scale)
                 .attr("x", r => r.x * this.scale)
                 .attr("y", r => r.y * this.scale);
-            console.log('rect', shape.data);
+            // console.log('rect', shape.data)
         };
         const shape = this.display
             .selectAll(".shape")
@@ -164,6 +164,8 @@ class DynamicDisplay {
 class Generation {
     constructor() {
         this.shapes = [];
+        this.prevGenShapes = [];
+        this.generationSize = 10;
     }
     addShape(shape) {
         this.shapes.push(shape);
@@ -187,6 +189,15 @@ class Generation {
     performSelection() {
         const marks = this.shapes.map(s => s.evaluate()), minMark = marks.sort()[Math.floor(0.3 * marks.length)], initialCount = this.shapes.length;
         this.shapes = this.shapes.filter((s, i) => marks[i] >= minMark);
+        let prevGenCpy = this.shapes.slice().sort((a, b) => a.evaluate() - b.evaluate());
+        while (this.shapes.length < this.generationSize) {
+            if (prevGenCpy.length > 0) {
+                this.shapes.push(prevGenCpy.shift());
+            }
+            else {
+                this.addRandomShape();
+            }
+        }
         return this;
     }
     performCrossover() {
@@ -204,6 +215,19 @@ class Generation {
         });
         return this;
     }
+    performEvolutionStep() {
+        this
+            .performSelection()
+            .performCrossover()
+            .performMutation()
+            .setRandomOrder()
+            .generationComplete();
+        return this;
+    }
+    generationComplete() {
+        this.prevGenShapes = this.shapes.slice();
+        return this;
+    }
     setRandomOrder() {
         const tmpShapes = this.shapes.splice(0);
         tmpShapes.forEach(shape => {
@@ -212,10 +236,11 @@ class Generation {
             else
                 this.shapes.unshift(shape);
         });
+        return this;
     }
 }
 let evaluate = (data) => {
-    console.log('evaluate', data);
+    // console.log('evaluate', data)
     let distances = [], distancesMap = {}, rects = data.slice(), avgs = [], avgPoint;
     let symetryMark = 0, countMark = 0;
     while (rects.length > 0) {
@@ -248,11 +273,11 @@ let evaluate = (data) => {
         if (direction === null)
             return;
         spreadPoints[direction] += avgPoint.distanceTo(rect.center) / 2;
-        console.log(rect.center, spreadPoints[direction]);
+        // console.log(rect.center, spreadPoints[direction])
     });
     spreadMark = Object.keys(spreadPoints).reduce((points, key) => points + spreadPoints[key], 0);
     spreadMark /= Math.sqrt(Math.pow(width, 2), Math.pow(height, 2)) * 8;
-    console.log(symetryMark, countMark, spreadMark);
+    // console.log(symetryMark, countMark, spreadMark)
     return symetryMark + countMark + spreadMark;
 };
 class Point {
@@ -419,6 +444,7 @@ document.querySelectorAll(".btn-evaluate").forEach(btn => btn.addEventListener("
 document.querySelectorAll(".btn-generation-add").forEach(btn => btn.addEventListener("click", () => {
     generation.addRandomShape();
     display.updateGenerationInfo();
+    dynamicDisplay.refresh();
 }));
 document.querySelectorAll(".btn-generation-selection").forEach(btn => btn.addEventListener("click", () => {
     generation.performSelection();
@@ -440,4 +466,30 @@ document.querySelectorAll(".btn-generation-randomorder").forEach(btn => btn.addE
     display.updateGenerationInfo();
     dynamicDisplay.refresh();
 }));
+document.querySelectorAll(".btn-evolution-animation-start").forEach(btn => btn.addEventListener("click", () => {
+    animation.start();
+}));
+document.querySelectorAll(".btn-evolution-animation-stop").forEach(btn => btn.addEventListener("click", () => {
+    animation.stop();
+}));
+const animation = (new function Animation() {
+    this.running = false;
+    this.start = function () {
+        this.running = true;
+        animate();
+    };
+    this.stop = function () {
+        this.running = false;
+    };
+    const animate = (timestamp) => {
+        const singleAnimation = () => {
+            generation.performEvolutionStep();
+            dynamicDisplay.refresh();
+            if (this.running)
+                requestAnimationFrame(animate);
+        };
+        singleAnimation();
+    };
+    return this;
+}());
 //# sourceMappingURL=index.js.map

@@ -41,6 +41,7 @@ document.querySelectorAll(".btn-evaluate").forEach(btn => btn.addEventListener("
 document.querySelectorAll(".btn-generation-add").forEach(btn => btn.addEventListener("click", () => {
   generation.addRandomShape()
   display.updateGenerationInfo()
+  dynamicDisplay.refresh();
 }))
 document.querySelectorAll(".btn-generation-selection").forEach(btn => btn.addEventListener("click", () => {
   generation.performSelection()
@@ -62,4 +63,32 @@ document.querySelectorAll(".btn-generation-randomorder").forEach(btn => btn.addE
   display.updateGenerationInfo()
   dynamicDisplay.refresh()
 }))
+document.querySelectorAll(".btn-evolution-animation-start").forEach(btn => btn.addEventListener("click", () => {
+  animation.start()
+}))
+document.querySelectorAll(".btn-evolution-animation-stop").forEach(btn => btn.addEventListener("click", () => {
+  animation.stop()
+}))
+
+const animation = (new function Animation(){
+  this.running = false
+  this.start = function(){
+    this.running = true
+    animate()
+  }
+  this.stop = function(){
+    this.running = false
+  }
+  const animate = (timestamp) => {
+    const singleAnimation = () => {
+      generation.performEvolutionStep()
+      dynamicDisplay.refresh()
+      if(this.running)
+        requestAnimationFrame(animate)
+    }
+    singleAnimation()
+  }
+  return this
+}())
+
 

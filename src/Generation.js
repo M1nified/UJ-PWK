@@ -1,6 +1,9 @@
 class Generation {
   constructor() {
     this.shapes = []
+    this.prevGenShapes = []
+    this.generationSize = 10
+    
   }
   addShape(shape) {
     this.shapes.push(shape)
@@ -23,10 +26,19 @@ class Generation {
     return this
   }
   performSelection() {
-    const marks = this.shapes.map(s => s.evaluate()),
+    const 
+      marks = this.shapes.map(s => s.evaluate()),
       minMark = marks.sort()[Math.floor(0.3 * marks.length)],
       initialCount = this.shapes.length
     this.shapes = this.shapes.filter((s, i) => marks[i] >= minMark)
+    let prevGenCpy = this.shapes.slice().sort((a,b) => a.evaluate() - b.evaluate())
+    while(this.shapes.length < this.generationSize) {
+      if(prevGenCpy.length > 0){
+        this.shapes.push(prevGenCpy.shift())
+      } else {
+        this.addRandomShape()
+      }
+    }
     return this
   }
   performCrossover() {
@@ -49,6 +61,19 @@ class Generation {
   	})
     return this
   }
+  performEvolutionStep() {
+    this
+      .performSelection()
+      .performCrossover()
+      .performMutation()
+      .setRandomOrder()
+      .generationComplete()
+    return this
+  }
+  generationComplete() {
+    this.prevGenShapes = this.shapes.slice()
+    return this
+  }
   setRandomOrder() {
   	const tmpShapes = this.shapes.splice(0)
   	tmpShapes.forEach(shape => {
@@ -57,11 +82,12 @@ class Generation {
   		else
   			this.shapes.unshift(shape)
   	})
+  	return this
   }
 }
 
 let evaluate = (data) => {
-  console.log('evaluate', data)
+  // console.log('evaluate', data)
   let distances = [],
     distancesMap = {},
     rects = data.slice(),
@@ -104,11 +130,11 @@ let evaluate = (data) => {
     let direction = avgPoint.directionTo(rect.center)
     if (direction === null) return
     spreadPoints[direction] += avgPoint.distanceTo(rect.center) / 2
-    console.log(rect.center, spreadPoints[direction])
+    // console.log(rect.center, spreadPoints[direction])
   })
   spreadMark = Object.keys(spreadPoints).reduce((points, key) => points + spreadPoints[key], 0)
   spreadMark /= Math.sqrt(Math.pow(width, 2), Math.pow(height, 2)) * 8
 
-  console.log(symetryMark, countMark, spreadMark)
+  // console.log(symetryMark, countMark, spreadMark)
   return symetryMark + countMark + spreadMark
 }
