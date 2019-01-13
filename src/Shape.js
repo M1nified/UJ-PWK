@@ -28,13 +28,35 @@ class Shape {
   evaluate() {
     return evaluate(this.data)
   }
-  splice(...args){
-  	return this.data.splice(...args)
+  splice(...args) {
+    return this.data.splice(...args)
   }
-  push(...args){
-  	return this.data.push(...args)
+  push(...args) {
+    return this.data.push(...args)
   }
-  unshift(...args){
-  	return this.data.unshift(...args)
+  unshift(...args) {
+    return this.data.unshift(...args)
+  }
+  removeDuplicates() {
+    this.data = this.data.sort((a, b) => {
+      if (a.x === b.x) {
+        return a.y - b.y
+      } else {
+        return a.x - b.x
+      }
+    })
+    let prev = this.data[this.data.length - 1]
+    for (let i = this.data.length - 2; i >= 0; i--) {
+      const rect = this.data[i]
+      if (rect.x === prev.x && rect.y === prev.y) {
+        this.data.splice(i++, 1)
+      } else {
+        prev = rect
+      }
+      if (i >= this.data.length) {
+        i = this.data.length
+      }
+    }
+    return this
   }
 }

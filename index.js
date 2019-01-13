@@ -9,6 +9,7 @@ class Display {
         this.info = [];
         this.infoBox = d3.select(".info");
         this.generationInfoBox = d3.select(".generation-info");
+        this.generationCounter = d3.select(".generation-info-counter");
     }
     setData(data) {
         this.data = data;
@@ -18,9 +19,16 @@ class Display {
         this.generation = generation;
         return this;
     }
+    updateGenerationInfoCounter() {
+        if (!this.generation)
+            return this;
+        let counter = this.generationCounter;
+        counter.text("Generation No.: " + this.generation.evolutionStepsCount);
+    }
     updateGenerationInfo() {
         if (!this.generation)
             return this;
+        this.updateGenerationInfoCounter();
         let shapes = this.generationInfoBox
             .selectAll("p")
             .data(this.generation.shapes);
@@ -31,14 +39,14 @@ class Display {
             .enter()
             .append("p")
             .attr("class", "shape")
-            .text(s => "Shape: " + s.size + " Mark: " + s.evaluate())
+            .text((s, i) => `Shape ${i + 1}, rectangles: ${s.size}, mark: ${s.evaluate()}`)
             .on('click', (shape) => {
             this.data = shape.data;
             this.refresh();
         });
         shapes
             .transition()
-            .text(s => "Shape: " + s.size + " Mark: " + s.evaluate());
+            .text((s, i) => `Shape ${i + 1}, rectangles: ${s.size}, mark: ${s.evaluate()}`);
         return this;
     }
     updateInfo() {
@@ -121,6 +129,10 @@ class DynamicDisplay {
         this.generation = generation;
         return this;
     }
+    setBigScreen(bigScreen) {
+        this.bigScreen = bigScreen;
+        return this;
+    }
     refresh() {
         const fillShapeSvg = (shape, i, shapes) => {
             const svg = d3
@@ -128,6 +140,9 @@ class DynamicDisplay {
             const rect = svg
                 .selectAll("rect")
                 .data(shape.data);
+            rect
+                .exit()
+                .remove();
             rect
                 .enter()
                 .append("rect")
@@ -143,7 +158,6 @@ class DynamicDisplay {
                 .attr("width", r => r.size * this.scale)
                 .attr("x", r => r.x * this.scale)
                 .attr("y", r => r.y * this.scale);
-            // console.log('rect', shape.data)
         };
         const shape = this.display
             .selectAll(".shape")
@@ -155,7 +169,12 @@ class DynamicDisplay {
             .enter()
             .append("svg")
             .attr("class", "shape")
-            .each(fillShapeSvg);
+            .each(fillShapeSvg)
+            .on('click', shape => {
+            this.bigScreen
+                .setData(shape.data)
+                .refresh();
+        });
         shape
             .transition()
             .each(fillShapeSvg);
@@ -166,6 +185,7 @@ class Generation {
         this.shapes = [];
         this.prevGenShapes = [];
         this.generationSize = 10;
+        this.evolutionStepsCount = 0;
     }
     addShape(shape) {
         this.shapes.push(shape);
@@ -221,7 +241,9 @@ class Generation {
             .performCrossover()
             .performMutation()
             .setRandomOrder()
-            .generationComplete();
+            .generationComplete()
+            .clearShapes();
+        this.evolutionStepsCount++;
         return this;
     }
     generationComplete() {
@@ -238,9 +260,12 @@ class Generation {
         });
         return this;
     }
+    clearShapes() {
+        this.shapes.forEach(shape => shape.removeDuplicates());
+        return this;
+    }
 }
 let evaluate = (data) => {
-    // console.log('evaluate', data)
     let distances = [], distancesMap = {}, rects = data.slice(), avgs = [], avgPoint;
     let symetryMark = 0, countMark = 0;
     while (rects.length > 0) {
@@ -403,6 +428,30 @@ class Shape {
     unshift(...args) {
         return this.data.unshift(...args);
     }
+    removeDuplicates() {
+        this.data = this.data.sort((a, b) => {
+            if (a.x === b.x) {
+                return a.y - b.y;
+            }
+            else {
+                return a.x - b.x;
+            }
+        });
+        let prev = this.data[this.data.length - 1];
+        for (let i = this.data.length - 2; i >= 0; i--) {
+            const rect = this.data[i];
+            if (rect.x === prev.x && rect.y === prev.y) {
+                this.data.splice(i++, 1);
+            }
+            else {
+                prev = rect;
+            }
+            if (i >= this.data.length) {
+                i = this.data.length;
+            }
+        }
+        return this;
+    }
 }
 const transformations = {
     "ne": rect0 => new Rect(rect0.centerX, rect0.centerY - rect0.size, rect0.size),
@@ -410,7 +459,7 @@ const transformations = {
     "sw": rect0 => new Rect(rect0.centerX - rect0.size, rect0.centerY, rect0.size),
     "nw": rect0 => new Rect(rect0.centerX - rect0.size, rect0.centerY - rect0.size, rect0.size)
 };
-const width = 700, height = 700;
+const width = 900, height = 900;
 const DIRECTIONS = {
     "n": 0,
     "ne": 1,
@@ -430,7 +479,9 @@ generation.addRandomShapes(10);
 display.updateGenerationInfo();
 // data.push(new Rect(100, 100))
 const dynamicDisplay = new DynamicDisplay(generation);
-dynamicDisplay.refresh();
+dynamicDisplay
+    .setBigScreen(display)
+    .refresh();
 display.refresh();
 document.querySelectorAll(".btn-undo").forEach(btn => btn.addEventListener("click", () => data.length - 1 && data.pop() && display.refresh()));
 document.querySelectorAll(".btn-evaluate").forEach(btn => btn.addEventListener("click", () => {
@@ -475,8 +526,10 @@ document.querySelectorAll(".btn-evolution-animation-stop").forEach(btn => btn.ad
 const animation = (new function Animation() {
     this.running = false;
     this.start = function () {
-        this.running = true;
-        animate();
+        if (!this.running) {
+            this.running = true;
+            animate();
+        }
     };
     this.stop = function () {
         this.running = false;
@@ -485,8 +538,12 @@ const animation = (new function Animation() {
         const singleAnimation = () => {
             generation.performEvolutionStep();
             dynamicDisplay.refresh();
+            display.updateGenerationInfoCounter();
             if (this.running)
                 requestAnimationFrame(animate);
+            else {
+                display.updateGenerationInfo();
+            }
         };
         singleAnimation();
     };

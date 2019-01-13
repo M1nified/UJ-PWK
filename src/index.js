@@ -1,6 +1,6 @@
 
-const width = 700,
-  height = 700
+const width = 900,
+  height = 900
 
 const DIRECTIONS = {
   "n": 0,
@@ -25,7 +25,9 @@ display.updateGenerationInfo()
 // data.push(new Rect(100, 100))
 
 const dynamicDisplay = new DynamicDisplay(generation)
-dynamicDisplay.refresh()
+dynamicDisplay
+  .setBigScreen(display)
+  .refresh()
 
 display.refresh()
 
@@ -70,21 +72,27 @@ document.querySelectorAll(".btn-evolution-animation-stop").forEach(btn => btn.ad
   animation.stop()
 }))
 
-const animation = (new function Animation(){
+const animation = (new function Animation() {
   this.running = false
-  this.start = function(){
-    this.running = true
-    animate()
+  this.start = function () {
+    if (!this.running) {
+      this.running = true
+      animate()
+    }
   }
-  this.stop = function(){
+  this.stop = function () {
     this.running = false
   }
   const animate = (timestamp) => {
     const singleAnimation = () => {
       generation.performEvolutionStep()
       dynamicDisplay.refresh()
-      if(this.running)
+      display.updateGenerationInfoCounter()
+      if (this.running)
         requestAnimationFrame(animate)
+      else {
+        display.updateGenerationInfo()
+      }
     }
     singleAnimation()
   }

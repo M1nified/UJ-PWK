@@ -3,7 +3,7 @@ class Generation {
     this.shapes = []
     this.prevGenShapes = []
     this.generationSize = 10
-    
+    this.evolutionStepsCount = 0
   }
   addShape(shape) {
     this.shapes.push(shape)
@@ -26,14 +26,14 @@ class Generation {
     return this
   }
   performSelection() {
-    const 
+    const
       marks = this.shapes.map(s => s.evaluate()),
       minMark = marks.sort()[Math.floor(0.3 * marks.length)],
       initialCount = this.shapes.length
     this.shapes = this.shapes.filter((s, i) => marks[i] >= minMark)
-    let prevGenCpy = this.shapes.slice().sort((a,b) => a.evaluate() - b.evaluate())
-    while(this.shapes.length < this.generationSize) {
-      if(prevGenCpy.length > 0){
+    let prevGenCpy = this.shapes.slice().sort((a, b) => a.evaluate() - b.evaluate())
+    while (this.shapes.length < this.generationSize) {
+      if (prevGenCpy.length > 0) {
         this.shapes.push(prevGenCpy.shift())
       } else {
         this.addRandomShape()
@@ -42,23 +42,23 @@ class Generation {
     return this
   }
   performCrossover() {
-  	for(let i=0; i<this.shapes.length / 2; i+=2){
-  		const fst = this.shapes[i],
-	  		snd = this.shapes[i+1],
-	  		fstMid = Math.floor(fst.size / 2),
-	  		sndMid = Math.floor(snd.size / 2),
-		  	fstRemoved = fst.splice(fstMid),
-		  	sndRemoved = snd.splice(sndMid)
-		  fst.push(...sndRemoved)
-		  snd.push(...fstRemoved)
-  	}
+    for (let i = 0; i < this.shapes.length / 2; i += 2) {
+      const fst = this.shapes[i],
+        snd = this.shapes[i + 1],
+        fstMid = Math.floor(fst.size / 2),
+        sndMid = Math.floor(snd.size / 2),
+        fstRemoved = fst.splice(fstMid),
+        sndRemoved = snd.splice(sndMid)
+      fst.push(...sndRemoved)
+      snd.push(...fstRemoved)
+    }
     return this
   }
   performMutation() {
-  	this.shapes.forEach(shape => {
-  		if(Math.random() < .1)
-  			shape.addRandomRect()
-  	})
+    this.shapes.forEach(shape => {
+      if (Math.random() < .1)
+        shape.addRandomRect()
+    })
     return this
   }
   performEvolutionStep() {
@@ -68,6 +68,8 @@ class Generation {
       .performMutation()
       .setRandomOrder()
       .generationComplete()
+      .clearShapes()
+    this.evolutionStepsCount++
     return this
   }
   generationComplete() {
@@ -75,19 +77,22 @@ class Generation {
     return this
   }
   setRandomOrder() {
-  	const tmpShapes = this.shapes.splice(0)
-  	tmpShapes.forEach(shape => {
-  		if(Math.random() > .5)
-  			this.shapes.push(shape)
-  		else
-  			this.shapes.unshift(shape)
-  	})
-  	return this
+    const tmpShapes = this.shapes.splice(0)
+    tmpShapes.forEach(shape => {
+      if (Math.random() > .5)
+        this.shapes.push(shape)
+      else
+        this.shapes.unshift(shape)
+    })
+    return this
+  }
+  clearShapes() {
+    this.shapes.forEach(shape => shape.removeDuplicates())
+    return this
   }
 }
 
 let evaluate = (data) => {
-  // console.log('evaluate', data)
   let distances = [],
     distancesMap = {},
     rects = data.slice(),

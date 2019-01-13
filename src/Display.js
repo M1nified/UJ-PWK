@@ -8,6 +8,7 @@ class Display {
     this.info = []
     this.infoBox = d3.select(".info")
     this.generationInfoBox = d3.select(".generation-info")
+    this.generationCounter = d3.select(".generation-info-counter")
   }
   setData(data) {
     this.data = data
@@ -17,8 +18,17 @@ class Display {
     this.generation = generation
     return this
   }
+  updateGenerationInfoCounter() {
+    if (!this.generation) return this
+
+    let counter = this.generationCounter
+    counter.text("Generation No.: " + this.generation.evolutionStepsCount)
+  }
   updateGenerationInfo() {
     if (!this.generation) return this
+
+    this.updateGenerationInfoCounter()
+
     let shapes = this.generationInfoBox
       .selectAll("p")
       .data(this.generation.shapes)
@@ -29,14 +39,14 @@ class Display {
       .enter()
       .append("p")
       .attr("class", "shape")
-      .text(s => "Shape: " + s.size + " Mark: " + s.evaluate())
+      .text((s, i) => `Shape ${i + 1}, rectangles: ${s.size}, mark: ${s.evaluate()}`)
       .on('click', (shape) => {
         this.data = shape.data
         this.refresh()
       })
     shapes
       .transition()
-      .text(s => "Shape: " + s.size + " Mark: " + s.evaluate())
+      .text((s, i) => `Shape ${i + 1}, rectangles: ${s.size}, mark: ${s.evaluate()}`)
     return this
   }
   updateInfo() {
