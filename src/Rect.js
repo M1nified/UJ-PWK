@@ -37,4 +37,7 @@ class Rect {
     let dist = this.distanceTo(furthest)
     return rects.filter(rect => dist == this.distanceTo(rect))
   }
+  findNeighbours(rects) {
+    return rects.filter(rect => this.distanceTo(rect) < this.size * 1.1 && (this.x !== rect.x && this.y !== rect.y))
+  }
 }

@@ -65,6 +65,11 @@ document.querySelectorAll(".btn-generation-randomorder").forEach(btn => btn.addE
   display.updateGenerationInfo()
   dynamicDisplay.refresh()
 }))
+document.querySelectorAll(".btn-evolution-animation-single").forEach(btn => btn.addEventListener("click", () => {
+  generation.performEvolutionStep()
+  dynamicDisplay.refresh()
+  display.updateGenerationInfo()
+}))
 document.querySelectorAll(".btn-evolution-animation-start").forEach(btn => btn.addEventListener("click", () => {
   animation.start()
 }))
