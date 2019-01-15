@@ -18,9 +18,9 @@ let shape1 = new Shape()
 
 let data = shape1.data
 let display = new Display(shape1.data)
-let generation = new Generation()
+let generation = new Generation(50)
 display.setGeneration(generation)
-generation.addRandomShapes(10)
+generation.addRandomShapes()
 display.updateGenerationInfo()
 // data.push(new Rect(100, 100))
 

@@ -31,7 +31,7 @@ class Display {
         this.updateGenerationInfoCounter();
         let shapes = this.generationInfoBox
             .selectAll("p")
-            .data(this.generation.shapes);
+            .data(this.generation.shapes.sort((a, b) => -1 * (a.evaluate() - b.evaluate())));
         shapes
             .exit()
             .remove();
@@ -65,7 +65,7 @@ class Display {
         return this;
     }
     refresh() {
-        let rect = this.display
+        const rect = this.display
             .selectAll("rect")
             .data(this.data);
         rect
@@ -78,7 +78,8 @@ class Display {
             .attr("width", r => r.size)
             .attr("x", r => r.x)
             .attr("y", r => r.y)
-            .attr("fill-opacity", ".95")
+            .attr("fill-opacity", ".5")
+            //      .attr("fill-opacity", ".95")
             .attr("stroke", "black")
             .on("click", (r, i, a) => {
             let mouseX = d3.event.layerX - r.x, mouseY = d3.event.layerY - r.y, newRect = null, halfSize = r.size / 2;
@@ -109,9 +110,32 @@ class Display {
             .transition()
             .attr("x", r => r.x)
             .attr("y", r => r.y)
-            .attr("fill-opacity", ".95")
             .attr("stroke", "black")
             .attr("fill", r => r.fill);
+        const centerPoint = (new Shape(this.data)).findCenter(), center = this.display
+            .selectAll("circle")
+            .data([centerPoint]);
+        if (centerPoint) {
+            center
+                .data([])
+                .exit()
+                .remove();
+            center
+                .data([centerPoint]);
+            center
+                .enter()
+                .append("circle")
+                .attr("r", 3)
+                .attr("cx", c => c.x)
+                .attr("cy", c => c.y)
+                .attr("fill", "red");
+            center
+                .transition()
+                .attr("r", 3)
+                .attr("cx", c => c.x)
+                .attr("cy", c => c.y)
+                .attr("fill", "red");
+        }
         return this;
     }
 }
@@ -119,7 +143,7 @@ class DynamicDisplay {
     constructor(generation) {
         this.setGeneration(generation);
         this.display = d3.select(".display-dynamic");
-        this.scale = 1 / 4;
+        this.scale = 1 / 10;
     }
     setData(data) {
         this.data = data;
@@ -168,6 +192,8 @@ class DynamicDisplay {
         shape
             .enter()
             .append("svg")
+            .attr("width", 1000 * this.scale)
+            .attr("height", 1000 * this.scale)
             .attr("class", "shape")
             .each(fillShapeSvg)
             .on('click', shape => {
@@ -181,10 +207,10 @@ class DynamicDisplay {
     }
 }
 class Generation {
-    constructor() {
+    constructor(generationSize = 10) {
         this.shapes = [];
         this.prevGenShapes = [];
-        this.generationSize = 10;
+        this.generationSize = generationSize;
         this.evolutionStepsCount = 0;
     }
     addShape(shape) {
@@ -200,7 +226,7 @@ class Generation {
         this.addShape(shape);
         return this;
     }
-    addRandomShapes(count) {
+    addRandomShapes(count = this.generationSize) {
         for (let i = 0; i < count; i++) {
             this.addRandomShape();
         }
@@ -273,7 +299,7 @@ class Generation {
         return true;
     }
 }
-let evaluate = (data) => {
+let evaluate1 = (data) => {
     let distances = [], distancesMap = {}, rects = data.slice(), avgs = [], avgPoint;
     let symetryMark = 0, countMark = 0;
     while (rects.length > 0) {
@@ -296,7 +322,7 @@ let evaluate = (data) => {
     }
     avgPoint = avgs.reduce((avg, point) => avg.avg(point), avgs[0]);
     avgs.forEach(p => symetryMark -= p.distanceTo(avgPoint));
-    symetryMark /= Math.sqrt(Math.pow(width, 2), Math.pow(height, 2));
+    //  symetryMark /= Math.sqrt(Math.pow(width, 2), Math.pow(height, 2))
     countMark = data.length / (width / 50 * height / 50);
     let spreadMark = 0;
     let spreadPoints = {};
@@ -313,6 +339,9 @@ let evaluate = (data) => {
     // console.log(symetryMark, countMark, spreadMark)
     return symetryMark + countMark + spreadMark;
 };
+let evaluate2 = data => {
+};
+let evaluate = evaluate1;
 class Point {
     constructor(x, y) {
         this.x = x;
@@ -404,8 +433,8 @@ class Rect {
     }
 }
 class Shape {
-    constructor() {
-        this.data = [];
+    constructor(data = []) {
+        this.data = data;
     }
     get size() {
         return this.data.length;
@@ -478,6 +507,29 @@ class Shape {
         }
         return true;
     }
+    findCenter() {
+        let distances = [], distancesMap = {}, rects = this.data.slice(), avgs = [], avgPoint;
+        while (rects.length > 0) {
+            let furthests = [], maxDistance = -1;
+            rects.forEach(r => {
+                let group = r.findFurthestAll(rects), dist = group[0].distanceTo(r);
+                if (dist > maxDistance) {
+                    maxDistance = dist;
+                    furthests = [r, ...group];
+                }
+            });
+            rects = rects.filter(r => {
+                for (let i in furthests) {
+                    if (furthests[i].x == r.x && furthests[i].y == r.y)
+                        return false;
+                }
+                return true;
+            });
+            avgs.push(furthests[0].center.avg(furthests[1].center));
+        }
+        avgPoint = avgs.reduce((avg, point) => avg.avg(point), avgs[0]);
+        return avgPoint;
+    }
 }
 const transformations = {
     "ne": rect0 => new Rect(rect0.centerX, rect0.centerY - rect0.size, rect0.size),
@@ -499,9 +551,9 @@ const DIRECTIONS = {
 let shape1 = new Shape();
 let data = shape1.data;
 let display = new Display(shape1.data);
-let generation = new Generation();
+let generation = new Generation(50);
 display.setGeneration(generation);
-generation.addRandomShapes(10);
+generation.addRandomShapes();
 display.updateGenerationInfo();
 // data.push(new Rect(100, 100))
 const dynamicDisplay = new DynamicDisplay(generation);

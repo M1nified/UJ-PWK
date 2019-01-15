@@ -1,8 +1,8 @@
 class Generation {
-  constructor() {
+  constructor(generationSize = 10) {
     this.shapes = []
     this.prevGenShapes = []
-    this.generationSize = 10
+    this.generationSize = generationSize
     this.evolutionStepsCount = 0
   }
   addShape(shape) {
@@ -19,7 +19,7 @@ class Generation {
     this.addShape(shape)
     return this
   }
-  addRandomShapes(count) {
+  addRandomShapes(count = this.generationSize) {
     for (let i = 0; i < count; i++) {
       this.addRandomShape()
     }
@@ -100,7 +100,7 @@ class Generation {
   }
 }
 
-let evaluate = (data) => {
+let evaluate1 = (data) => {
   let distances = [],
     distancesMap = {},
     rects = data.slice(),
@@ -132,7 +132,7 @@ let evaluate = (data) => {
   }
   avgPoint = avgs.reduce((avg, point) => avg.avg(point), avgs[0])
   avgs.forEach(p => symetryMark -= p.distanceTo(avgPoint))
-  symetryMark /= Math.sqrt(Math.pow(width, 2), Math.pow(height, 2))
+//  symetryMark /= Math.sqrt(Math.pow(width, 2), Math.pow(height, 2))
 
   countMark = data.length / (width / 50 * height / 50)
 
@@ -151,3 +151,10 @@ let evaluate = (data) => {
   // console.log(symetryMark, countMark, spreadMark)
   return symetryMark + countMark + spreadMark
 }
+
+let evaluate2 = data => {
+  
+}
+
+let evaluate = evaluate1
+

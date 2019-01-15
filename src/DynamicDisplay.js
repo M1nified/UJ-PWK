@@ -2,7 +2,7 @@ class DynamicDisplay {
 	constructor(generation) {
 		this.setGeneration(generation)
 		this.display = d3.select(".display-dynamic")
-		this.scale = 1 / 4
+		this.scale = 1 / 10
 	}
 	setData(data) {
 		this.data = data
@@ -51,6 +51,8 @@ class DynamicDisplay {
 		shape
 			.enter()
 			.append("svg")
+			.attr("width", 1000 * this.scale)
+			.attr("height", 1000 * this.scale)
 			.attr("class", "shape")
 			.each(fillShapeSvg)
 			.on('click', shape => {

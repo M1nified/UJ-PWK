@@ -1,6 +1,6 @@
 class Shape {
-  constructor() {
-    this.data = []
+  constructor(data = []) {
+    this.data = data
   }
   get size() {
     return this.data.length
@@ -76,6 +76,37 @@ class Shape {
         return false
     }
     return true
+  }
+  findCenter() {
+    let 
+      distances = [],
+      distancesMap = {},
+      rects = this.data.slice(),
+      avgs = [],
+      avgPoint
+
+    while (rects.length > 0) {
+      let furthests = [],
+        maxDistance = -1
+      rects.forEach(r => {
+        let group = r.findFurthestAll(rects),
+          dist = group[0].distanceTo(r)
+        if (dist > maxDistance) {
+          maxDistance = dist
+          furthests = [r, ...group]
+        }
+      })
+      rects = rects.filter(r => {
+        for (let i in furthests) {
+          if (furthests[i].x == r.x && furthests[i].y == r.y)
+            return false
+        }
+        return true
+      })
+      avgs.push(furthests[0].center.avg(furthests[1].center))
+    }
+    avgPoint = avgs.reduce((avg, point) => avg.avg(point), avgs[0])
+    return avgPoint
   }
 }
 

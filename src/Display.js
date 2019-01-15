@@ -31,7 +31,7 @@ class Display {
 
     let shapes = this.generationInfoBox
       .selectAll("p")
-      .data(this.generation.shapes)
+      .data(this.generation.shapes.sort((a,b) => -1 * (a.evaluate() - b.evaluate())))
     shapes
       .exit()
       .remove()
@@ -64,8 +64,8 @@ class Display {
       .text(i => i.title + ":" + i.info)
     return this
   }
-  refresh() {
-    let rect = this.display
+  refresh() {      
+    const rect = this.display
       .selectAll("rect")
       .data(this.data)
     rect
@@ -78,7 +78,8 @@ class Display {
       .attr("width", r => r.size)
       .attr("x", r => r.x)
       .attr("y", r => r.y)
-      .attr("fill-opacity", ".95")
+      .attr("fill-opacity", ".5")
+//      .attr("fill-opacity", ".95")
       .attr("stroke", "black")
       .on("click", (r, i, a) => {
         let mouseX = d3.event.layerX - r.x,
@@ -112,9 +113,36 @@ class Display {
       .transition()
       .attr("x", r => r.x)
       .attr("y", r => r.y)
-      .attr("fill-opacity", ".95")
       .attr("stroke", "black")
       .attr("fill", r => r.fill)
+      
+    
+    const 
+      centerPoint = (new Shape(this.data)).findCenter(),
+      center = this.display
+        .selectAll("circle")
+        .data([centerPoint])
+    if(centerPoint) {
+      center
+        .data([])
+        .exit()
+        .remove()
+      center
+        .data([centerPoint])
+      center
+        .enter()
+        .append("circle")
+        .attr("r", 3)
+        .attr("cx", c => c.x)
+        .attr("cy", c => c.y)
+        .attr("fill", "red")
+      center
+        .transition()
+        .attr("r", 3)
+        .attr("cx", c => c.x)
+        .attr("cy", c => c.y)
+        .attr("fill", "red")    
+    }
     return this
   }
 }
