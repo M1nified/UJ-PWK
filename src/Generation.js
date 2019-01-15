@@ -90,6 +90,14 @@ class Generation {
     this.shapes.forEach(shape => shape.removeDuplicates())
     return this
   }
+  areAllShapesTheSame() {
+    console.log('aasts')
+    for(let i = 1; i < this.shapes.length; i++) {
+      if(!this.shapes[i].equals(this.shapes[i-1]))
+        return false
+    }
+    return true
+  }
 }
 
 let evaluate = (data) => {

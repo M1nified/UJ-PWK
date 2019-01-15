@@ -59,4 +59,23 @@ class Shape {
     }
     return this
   }
+  equals(shape){
+    if(this.data.length !== shape.data.length)
+      return false
+    const 
+      sortF = (a,b) => {
+        if(a.x === b.x)
+          return a.y - b.y
+        else
+          return a.x - b.x
+      },
+      aData = this.data.sort(sortF),
+      bData = shape.data.sort(sortF)
+    for(let i = 0; i < aData.length; i++) {
+      if(aData[i].x !== bData[i].x || aData[i].y !== bData[i].y)
+        return false
+    }
+    return true
+  }
 }
+

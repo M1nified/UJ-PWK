@@ -264,6 +264,14 @@ class Generation {
         this.shapes.forEach(shape => shape.removeDuplicates());
         return this;
     }
+    areAllShapesTheSame() {
+        console.log('aasts');
+        for (let i = 1; i < this.shapes.length; i++) {
+            if (!this.shapes[i].equals(this.shapes[i - 1]))
+                return false;
+        }
+        return true;
+    }
 }
 let evaluate = (data) => {
     let distances = [], distancesMap = {}, rects = data.slice(), avgs = [], avgPoint;
@@ -391,6 +399,9 @@ class Rect {
         let dist = this.distanceTo(furthest);
         return rects.filter(rect => dist == this.distanceTo(rect));
     }
+    findNeighbours(rects) {
+        return rects.filter(rect => this.distanceTo(rect) < this.size * 1.1 && (this.x !== rect.x && this.y !== rect.y));
+    }
 }
 class Shape {
     constructor() {
@@ -451,6 +462,21 @@ class Shape {
             }
         }
         return this;
+    }
+    equals(shape) {
+        if (this.data.length !== shape.data.length)
+            return false;
+        const sortF = (a, b) => {
+            if (a.x === b.x)
+                return a.y - b.y;
+            else
+                return a.x - b.x;
+        }, aData = this.data.sort(sortF), bData = shape.data.sort(sortF);
+        for (let i = 0; i < aData.length; i++) {
+            if (aData[i].x !== bData[i].x || aData[i].y !== bData[i].y)
+                return false;
+        }
+        return true;
     }
 }
 const transformations = {
@@ -517,6 +543,11 @@ document.querySelectorAll(".btn-generation-randomorder").forEach(btn => btn.addE
     display.updateGenerationInfo();
     dynamicDisplay.refresh();
 }));
+document.querySelectorAll(".btn-evolution-animation-single").forEach(btn => btn.addEventListener("click", () => {
+    generation.performEvolutionStep();
+    dynamicDisplay.refresh();
+    display.updateGenerationInfo();
+}));
 document.querySelectorAll(".btn-evolution-animation-start").forEach(btn => btn.addEventListener("click", () => {
     animation.start();
 }));
@@ -539,7 +570,7 @@ const animation = (new function Animation() {
             generation.performEvolutionStep();
             dynamicDisplay.refresh();
             display.updateGenerationInfoCounter();
-            if (this.running)
+            if (this.running && !generation.areAllShapesTheSame())
                 requestAnimationFrame(animate);
             else {
                 display.updateGenerationInfo();

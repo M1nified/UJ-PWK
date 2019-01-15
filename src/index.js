@@ -93,7 +93,7 @@ const animation = (new function Animation() {
       generation.performEvolutionStep()
       dynamicDisplay.refresh()
       display.updateGenerationInfoCounter()
-      if (this.running)
+      if (this.running && !generation.areAllShapesTheSame())
         requestAnimationFrame(animate)
       else {
         display.updateGenerationInfo()
