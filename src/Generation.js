@@ -4,6 +4,7 @@ class Generation {
     this.prevGenShapes = []
     this.generationSize = generationSize
     this.evolutionStepsCount = 0
+    this.bestShape = undefined
   }
   addShape(shape) {
     this.shapes.push(shape)
@@ -69,6 +70,7 @@ class Generation {
       .setRandomOrder()
       .generationComplete()
       .clearShapes()
+      .updateBestMarkEver()
     this.evolutionStepsCount++
     return this
   }
@@ -98,9 +100,43 @@ class Generation {
     }
     return true
   }
+  getBestShapeDetails() {
+    if(this.shapes.length === 0)
+      return undefined
+    const [bestMark, bestShape] = this.shapes.reduce(([bestMark, bestShape], currShape) => {
+      const currMark = currShape.evaluate()
+      return currMark >= bestMark 
+        ? [currMark, currShape] 
+        : [bestMark, bestShape]
+    }, [this.shapes[0].evaluate(), this.shapes[0]])
+    return [bestMark, bestShape]
+  }
+  getBestShape() {
+    if(this.shapes.length === 0)
+      return undefined
+    const [_bestMark, bestShape] = getBestShapeDetails()
+    return bestShape
+  }
+  updateBestMarkEver() {
+    if(this.shapes.length === 0)
+      return undefined
+    const [bestMark, bestShape] = getBestShapeDetails()
+    if(typeof this.bestMarkEver === 'undefined')
+      this.bestMarkEver = bestMark
+      this.bestShapeEver = bestShape
+    else
+      if(bestMark > this.bestMarkEver){
+        debugger
+      } else {
+        debugger
+      }
+    return this
+  }
 }
 
-let evaluate1 = (data) => {
+let evaluate1 = (shape) => {
+  const 
+    data = shape.data
   let distances = [],
     distancesMap = {},
     rects = data.slice(),
@@ -152,9 +188,15 @@ let evaluate1 = (data) => {
   return symetryMark + countMark + spreadMark
 }
 
-let evaluate2 = data => {
-  
+let evaluate2 = shape => {
+  const
+    center = shape.findCenter(),
+    distList = shape.distanceListFrom(center),
+    distMax = distList.reduce((m, {distance}) => Math.max(m, distance), 0)
+//  console.log(distList)
+  return distList.reduce((sum, {distance}) => distance > distMax * .5 ? sum + 5 * distance : sum - 10 * distance, 0)
+    
 }
 
-let evaluate = evaluate1
+let evaluate = evaluate2
 

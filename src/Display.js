@@ -22,7 +22,7 @@ class Display {
     if (!this.generation) return this
 
     let counter = this.generationCounter
-    counter.text("Generation No.: " + this.generation.evolutionStepsCount)
+    counter.text("Generation No.: " + this.generation.evolutionStepsCount + ` Best Mark So Far: ${this.generation.bestMarkEver}`)
   }
   updateGenerationInfo() {
     if (!this.generation) return this

@@ -26,7 +26,7 @@ class Shape {
     return this
   }
   evaluate() {
-    return evaluate(this.data)
+    return evaluate(this)
   }
   splice(...args) {
     return this.data.splice(...args)
@@ -107,6 +107,27 @@ class Shape {
     }
     avgPoint = avgs.reduce((avg, point) => avg.avg(point), avgs[0])
     return avgPoint
+  }
+  findFurthestFrom(point) {
+    let
+      furthests = [],
+      maxDist = -1
+    this.data.forEach((rect) => {
+      const currDist = rect.center().distanceTo(point)
+      if(currDist > maxDist) {
+        furthests = [rect]
+        maxDist = currDist
+      } else {
+        furthests.push(rect)
+      }
+    })
+    return furthests
+  }
+  distanceListFrom(point) {
+    return this.data.map(rect => ({
+      distance: rect.center.distanceTo(point),
+      rect
+    }))
   }
 }
 

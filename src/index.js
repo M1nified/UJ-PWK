@@ -18,7 +18,7 @@ let shape1 = new Shape()
 
 let data = shape1.data
 let display = new Display(shape1.data)
-let generation = new Generation(50)
+let generation = new Generation(10)
 display.setGeneration(generation)
 generation.addRandomShapes()
 display.updateGenerationInfo()
@@ -93,6 +93,10 @@ const animation = (new function Animation() {
       generation.performEvolutionStep()
       dynamicDisplay.refresh()
       display.updateGenerationInfoCounter()
+      let bestShape = generation.getBestShape()
+      display
+        .setData(bestShape ? bestShape.data : [])
+        .refresh()
       if (this.running && !generation.areAllShapesTheSame())
         requestAnimationFrame(animate)
       else {
