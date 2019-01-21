@@ -1,6 +1,7 @@
 "use strict";
 class Display {
     constructor(data) {
+        this.shape = new Shape();
         this.data = data;
         this.display = d3.select(".display")
             .attr("width", width)
@@ -10,6 +11,12 @@ class Display {
         this.infoBox = d3.select(".info");
         this.generationInfoBox = d3.select(".generation-info");
         this.generationCounter = d3.select(".generation-info-counter");
+    }
+    get data() {
+        return this.shape.data;
+    }
+    set data(data) {
+        this.shape.data = data;
     }
     setData(data) {
         this.data = data;
@@ -67,7 +74,7 @@ class Display {
     refresh() {
         const rect = this.display
             .selectAll("rect")
-            .data(this.data);
+            .data(this.data), displayInfo = d3.select(".display-info");
         rect
             .exit()
             .remove();
@@ -112,7 +119,13 @@ class Display {
             .attr("y", r => r.y)
             .attr("stroke", "black")
             .attr("fill", r => r.fill);
-        const centerPoint = (new Shape(this.data)).findCenter(), center = this.display
+        const displayInfoText = `Mark: ${this.shape.evaluate()}`;
+        displayInfo
+            .text(displayInfoText);
+        displayInfo
+            .transition()
+            .text(displayInfoText);
+        const centerPoint = this.shape.findCenter(), center = this.display
             .selectAll("circle")
             .data([centerPoint]);
         if (centerPoint) {
@@ -257,7 +270,7 @@ class Generation {
     }
     performMutation() {
         this.shapes.forEach(shape => {
-            if (Math.random() < .1)
+            if (Math.random() < .2)
                 shape.addRandomRect();
         });
         return this;
@@ -293,7 +306,6 @@ class Generation {
         return this;
     }
     areAllShapesTheSame() {
-        console.log('aasts');
         for (let i = 1; i < this.shapes.length; i++) {
             if (!this.shapes[i].equals(this.shapes[i - 1]))
                 return false;
@@ -303,9 +315,10 @@ class Generation {
     getBestShapeDetails() {
         if (this.shapes.length === 0)
             return undefined;
-        const [bestMark, bestShape] = this.shapes.reduce(([bestMark, bestShape], currShape) => {
+        const [bestMark, bestShape] = this.shapes
+            .reduce(([bestMark, bestShape], currShape) => {
             const currMark = currShape.evaluate();
-            return currMark >= bestMark
+            return currMark > bestMark
                 ? [currMark, currShape]
                 : [bestMark, bestShape];
         }, [this.shapes[0].evaluate(), this.shapes[0]]);
@@ -319,22 +332,15 @@ class Generation {
     }
     updateBestMarkEver() {
         if (this.shapes.length === 0)
-            return undefined;
-        const [bestMark, bestShape] = getBestShapeDetails();
-        if (typeof this.bestMarkEver === 'undefined')
+            return this;
+        const [bestMark, bestShape] = this.getBestShapeDetails();
+        if (typeof this.bestMarkEver === 'undefined' || bestMark > this.bestMarkEver) {
             this.bestMarkEver = bestMark;
-        this.bestShapeEver = bestShape;
+            this.bestShapeEver = new Shape(bestShape.data.slice());
+        }
+        return this;
     }
-    if(bestMark) { }
 }
- > this.bestMarkEver;
-{
-    debugger;
-}
-{
-    debugger;
-}
-return this;
 let evaluate1 = (shape) => {
     const data = shape.data;
     let distances = [], distancesMap = {}, rects = data.slice(), avgs = [], avgPoint;
@@ -377,9 +383,11 @@ let evaluate1 = (shape) => {
     return symetryMark + countMark + spreadMark;
 };
 let evaluate2 = shape => {
-    const center = shape.findCenter(), distList = shape.distanceListFrom(center), distMax = distList.reduce((m, { distance }) => Math.max(m, distance), 0);
+    const center = shape.findCenter(), distList = shape.distanceListFrom(center), distMax = distList.reduce((m, { distance }) => Math.max(m, distance), 0), distMin = distList.reduce((m, { distance }) => typeof m !== 'undefined' ? Math.min(m, distance) : distance, undefined);
     //  console.log(distList)
-    return distList.reduce((sum, { distance }) => distance > distMax * .5 ? sum + 5 * distance : sum - 10 * distance, 0);
+    // return distList.reduce((sum, { distance }) => distance > distMax * .5 ? sum + 5 * distance : sum - 10 * distance, 0)
+    // return distList.reduce((sum, { distance }) => distance > distMax * .5 ? sum + 5 * distance : sum, 0)
+    return distMin * 1000 + shape.data.length * 100;
 };
 let evaluate = evaluate2;
 class Point {
@@ -611,7 +619,7 @@ const DIRECTIONS = {
 let shape1 = new Shape();
 let data = shape1.data;
 let display = new Display(shape1.data);
-let generation = new Generation(10);
+let generation = new Generation(100);
 display.setGeneration(generation);
 generation.addRandomShapes();
 display.updateGenerationInfo();
@@ -666,6 +674,12 @@ document.querySelectorAll(".btn-evolution-animation-start").forEach(btn => btn.a
 document.querySelectorAll(".btn-evolution-animation-stop").forEach(btn => btn.addEventListener("click", () => {
     animation.stop();
 }));
+document.querySelectorAll(".btn-show-best-so-far").forEach(btn => btn.addEventListener("click", () => {
+    const bestShape = generation.bestShapeEver;
+    display
+        .setData(bestShape ? bestShape.data : [])
+        .refresh();
+}));
 const animation = (new function Animation() {
     this.running = false;
     this.start = function () {
@@ -682,7 +696,7 @@ const animation = (new function Animation() {
             generation.performEvolutionStep();
             dynamicDisplay.refresh();
             display.updateGenerationInfoCounter();
-            let bestShape = generation.getBestShape();
+            let bestShape = generation.bestShapeEver;
             display
                 .setData(bestShape ? bestShape.data : [])
                 .refresh();

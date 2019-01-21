@@ -18,7 +18,7 @@ let shape1 = new Shape()
 
 let data = shape1.data
 let display = new Display(shape1.data)
-let generation = new Generation(10)
+let generation = new Generation(100)
 display.setGeneration(generation)
 generation.addRandomShapes()
 display.updateGenerationInfo()
@@ -76,6 +76,12 @@ document.querySelectorAll(".btn-evolution-animation-start").forEach(btn => btn.a
 document.querySelectorAll(".btn-evolution-animation-stop").forEach(btn => btn.addEventListener("click", () => {
   animation.stop()
 }))
+document.querySelectorAll(".btn-show-best-so-far").forEach(btn => btn.addEventListener("click", () => {
+  const bestShape = generation.bestShapeEver
+  display
+    .setData(bestShape ? bestShape.data : [])
+    .refresh()
+}))
 
 const animation = (new function Animation() {
   this.running = false
@@ -93,7 +99,7 @@ const animation = (new function Animation() {
       generation.performEvolutionStep()
       dynamicDisplay.refresh()
       display.updateGenerationInfoCounter()
-      let bestShape = generation.getBestShape()
+      let bestShape = generation.bestShapeEver
       display
         .setData(bestShape ? bestShape.data : [])
         .refresh()

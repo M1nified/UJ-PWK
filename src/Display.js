@@ -1,5 +1,6 @@
 class Display {
   constructor(data) {
+    this.shape = new Shape()
     this.data = data
     this.display = d3.select(".display")
       .attr("width", width)
@@ -9,6 +10,12 @@ class Display {
     this.infoBox = d3.select(".info")
     this.generationInfoBox = d3.select(".generation-info")
     this.generationCounter = d3.select(".generation-info-counter")
+  }
+  get data() {
+    return this.shape.data
+  }
+  set data(data) {
+    this.shape.data = data
   }
   setData(data) {
     this.data = data
@@ -31,7 +38,7 @@ class Display {
 
     let shapes = this.generationInfoBox
       .selectAll("p")
-      .data(this.generation.shapes.sort((a,b) => -1 * (a.evaluate() - b.evaluate())))
+      .data(this.generation.shapes.sort((a, b) => -1 * (a.evaluate() - b.evaluate())))
     shapes
       .exit()
       .remove()
@@ -64,10 +71,11 @@ class Display {
       .text(i => i.title + ":" + i.info)
     return this
   }
-  refresh() {      
+  refresh() {
     const rect = this.display
       .selectAll("rect")
-      .data(this.data)
+      .data(this.data),
+      displayInfo = d3.select(".display-info")
     rect
       .exit()
       .remove()
@@ -79,7 +87,7 @@ class Display {
       .attr("x", r => r.x)
       .attr("y", r => r.y)
       .attr("fill-opacity", ".5")
-//      .attr("fill-opacity", ".95")
+      //      .attr("fill-opacity", ".95")
       .attr("stroke", "black")
       .on("click", (r, i, a) => {
         let mouseX = d3.event.layerX - r.x,
@@ -115,14 +123,20 @@ class Display {
       .attr("y", r => r.y)
       .attr("stroke", "black")
       .attr("fill", r => r.fill)
-      
-    
-    const 
-      centerPoint = (new Shape(this.data)).findCenter(),
+
+    const displayInfoText = `Mark: ${this.shape.evaluate()}`
+    displayInfo
+      .text(displayInfoText)
+    displayInfo
+      .transition()
+      .text(displayInfoText)
+
+    const
+      centerPoint = this.shape.findCenter(),
       center = this.display
         .selectAll("circle")
         .data([centerPoint])
-    if(centerPoint) {
+    if (centerPoint) {
       center
         .data([])
         .exit()
@@ -141,7 +155,7 @@ class Display {
         .attr("r", 3)
         .attr("cx", c => c.x)
         .attr("cy", c => c.y)
-        .attr("fill", "red")    
+        .attr("fill", "red")
     }
     return this
   }

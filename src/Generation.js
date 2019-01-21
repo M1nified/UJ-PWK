@@ -57,7 +57,7 @@ class Generation {
   }
   performMutation() {
     this.shapes.forEach(shape => {
-      if (Math.random() < .1)
+      if (Math.random() < .2)
         shape.addRandomRect()
     })
     return this
@@ -93,49 +93,47 @@ class Generation {
     return this
   }
   areAllShapesTheSame() {
-    console.log('aasts')
-    for(let i = 1; i < this.shapes.length; i++) {
-      if(!this.shapes[i].equals(this.shapes[i-1]))
+    for (let i = 1; i < this.shapes.length; i++) {
+      if (!this.shapes[i].equals(this.shapes[i - 1]))
         return false
     }
     return true
   }
   getBestShapeDetails() {
-    if(this.shapes.length === 0)
+    if (this.shapes.length === 0)
       return undefined
-    const [bestMark, bestShape] = this.shapes.reduce(([bestMark, bestShape], currShape) => {
-      const currMark = currShape.evaluate()
-      return currMark >= bestMark 
-        ? [currMark, currShape] 
-        : [bestMark, bestShape]
-    }, [this.shapes[0].evaluate(), this.shapes[0]])
+    const [bestMark, bestShape] = this.shapes
+      .reduce(
+        ([bestMark, bestShape], currShape) => {
+          const currMark = currShape.evaluate()
+          return currMark > bestMark
+            ? [currMark, currShape]
+            : [bestMark, bestShape]
+        },
+        [this.shapes[0].evaluate(), this.shapes[0]]
+      )
     return [bestMark, bestShape]
   }
   getBestShape() {
-    if(this.shapes.length === 0)
+    if (this.shapes.length === 0)
       return undefined
     const [_bestMark, bestShape] = getBestShapeDetails()
     return bestShape
   }
   updateBestMarkEver() {
-    if(this.shapes.length === 0)
-      return undefined
-    const [bestMark, bestShape] = getBestShapeDetails()
-    if(typeof this.bestMarkEver === 'undefined')
+    if (this.shapes.length === 0)
+      return this
+    const [bestMark, bestShape] = this.getBestShapeDetails()
+    if (typeof this.bestMarkEver === 'undefined' || bestMark > this.bestMarkEver) {
       this.bestMarkEver = bestMark
-      this.bestShapeEver = bestShape
-    else
-      if(bestMark > this.bestMarkEver){
-        debugger
-      } else {
-        debugger
-      }
+      this.bestShapeEver = new Shape(bestShape.data.slice())
+    }
     return this
   }
 }
 
 let evaluate1 = (shape) => {
-  const 
+  const
     data = shape.data
   let distances = [],
     distancesMap = {},
@@ -168,7 +166,7 @@ let evaluate1 = (shape) => {
   }
   avgPoint = avgs.reduce((avg, point) => avg.avg(point), avgs[0])
   avgs.forEach(p => symetryMark -= p.distanceTo(avgPoint))
-//  symetryMark /= Math.sqrt(Math.pow(width, 2), Math.pow(height, 2))
+  //  symetryMark /= Math.sqrt(Math.pow(width, 2), Math.pow(height, 2))
 
   countMark = data.length / (width / 50 * height / 50)
 
@@ -192,10 +190,13 @@ let evaluate2 = shape => {
   const
     center = shape.findCenter(),
     distList = shape.distanceListFrom(center),
-    distMax = distList.reduce((m, {distance}) => Math.max(m, distance), 0)
-//  console.log(distList)
-  return distList.reduce((sum, {distance}) => distance > distMax * .5 ? sum + 5 * distance : sum - 10 * distance, 0)
-    
+    distMax = distList.reduce((m, { distance }) => Math.max(m, distance), 0),
+    distMin = distList.reduce((m, { distance }) => typeof m !== 'undefined' ? Math.min(m, distance) : distance, undefined)
+  //  console.log(distList)
+  // return distList.reduce((sum, { distance }) => distance > distMax * .5 ? sum + 5 * distance : sum - 10 * distance, 0)
+  // return distList.reduce((sum, { distance }) => distance > distMax * .5 ? sum + 5 * distance : sum, 0)
+  return distMin * 1000 + shape.data.length * 100
+
 }
 
 let evaluate = evaluate2
