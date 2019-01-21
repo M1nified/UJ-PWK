@@ -69,6 +69,10 @@ document.querySelectorAll(".btn-evolution-animation-single").forEach(btn => btn.
   generation.performEvolutionStep()
   dynamicDisplay.refresh()
   display.updateGenerationInfo()
+  let bestShape = generation.bestShapeEver
+  display
+    .setData(bestShape ? bestShape.data : [])
+    .refresh()
 }))
 document.querySelectorAll(".btn-evolution-animation-start").forEach(btn => btn.addEventListener("click", () => {
   animation.start()
